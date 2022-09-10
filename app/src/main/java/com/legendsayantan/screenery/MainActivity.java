@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     MaterialCardView cDim;
     MaterialCardView cFrame;
     boolean ANIMATION_IN_PROGRESS = false;
-    int ANIMATION_DURATION = 500;
+    int ANIMATION_DURATION = 250;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,25 +53,27 @@ public class MainActivity extends AppCompatActivity {
         cWake.setOnClickListener(v -> {
             if(ANIMATION_IN_PROGRESS)return;
             if(checkOverlay()){
-                runCloseAnimation(animation -> {});
-                new Timer().schedule(new TimerTask() {
+                runCloseAnimation(new AnimatorListenerAdapter() {
                     @Override
-                    public void run() {
+                    public void onAnimationEnd(Animator animation) {
                         startActivity(new Intent(getApplicationContext(),WakeActivity.class)
                                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                     }
-                },ANIMATION_DURATION*2L);
+                });
             }else{
-                runCloseAnimation(animation -> {
-                    showDialog("Screen overlay permission is necessary to keep screen awake.\n\nFind Screenery and enable this permission in the next screen.", v1 -> {
-                        closeDialog(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
-                                getOverlayPerm();
-                            }
+                runCloseAnimation(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        showDialog("Screen overlay permission is necessary to keep screen awake.\n\nFind Screenery and enable this permission in the next screen.", v1 -> {
+                            closeDialog(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    getOverlayPerm();
+                                }
+                            });
                         });
-                    });
+                    }
                 });
             }
         });
@@ -82,9 +84,11 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.dialog).setVisibility(View.GONE);
         if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
             refreshTheme();
-            runOpenAnimation(animation -> {});
+            runOpenAnimation(null);
         }else{
-            runCloseAnimation(animation1 ->
+            runCloseAnimation(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
                     showDialog("Storage Access is necessary for wallpaper based app theme.", v -> {
                         if(ANIMATION_IN_PROGRESS)return;
                         closeDialog(new AnimatorListenerAdapter() {
@@ -94,7 +98,10 @@ public class MainActivity extends AppCompatActivity {
                                 super.onAnimationEnd(animation);
                             }
                         });
-                    }));
+                    });
+                }
+            });
+
         }
         super.onResume();
     }
@@ -111,14 +118,13 @@ public class MainActivity extends AppCompatActivity {
             });
             return;
         }
-        runCloseAnimation(animation -> {});
-        new Timer().schedule(new TimerTask() {
+        runCloseAnimation(new AnimatorListenerAdapter() {
             @Override
-            public void run() {
+            public void onAnimationEnd(Animator animation) {
                 finishAffinity();
                 finish();
             }
-        },ANIMATION_DURATION*2L);
+        });
     }
 
     protected void refreshTheme(){
@@ -165,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean checkOverlay() {
         return Settings.canDrawOverlays(getApplicationContext());
     }
-    protected void runOpenAnimation(ValueAnimator.AnimatorUpdateListener listener){
+    protected void runOpenAnimation(AnimatorListenerAdapter listener){
         ANIMATION_IN_PROGRESS = true;
         int width = getResources().getDisplayMetrics().widthPixels;
         wake.setTranslationX(-400);
@@ -175,25 +181,37 @@ public class MainActivity extends AppCompatActivity {
         cDim.setTranslationX(width-150);
         cFrame.setTranslationX(width-150);
         wake.animate().translationX(0).setDuration(ANIMATION_DURATION);
-        cWake.animate().translationX(125).setDuration(ANIMATION_DURATION).setUpdateListener(animation -> {
-            dim.animate().translationX(0).setDuration(ANIMATION_DURATION);
-            cDim.animate().translationX(125).setDuration(ANIMATION_DURATION).setUpdateListener(animation1 -> {
-                frame.animate().translationX(0).setDuration(ANIMATION_DURATION);
-                cFrame.animate().translationX(125).setDuration(ANIMATION_DURATION).setUpdateListener(listener);
-            });
+        cWake.animate().translationX(125).setDuration(ANIMATION_DURATION).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                dim.animate().translationX(0).setDuration(ANIMATION_DURATION);
+                cDim.animate().translationX(125).setDuration(ANIMATION_DURATION).setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        frame.animate().translationX(0).setDuration(ANIMATION_DURATION);
+                        cFrame.animate().translationX(125).setDuration(ANIMATION_DURATION).setListener(listener);
+                    }
+                });
+            }
         });
         ANIMATION_IN_PROGRESS = false;
     }
-    protected void runCloseAnimation(ValueAnimator.AnimatorUpdateListener listener){
+    protected void runCloseAnimation(AnimatorListenerAdapter adapter){
         ANIMATION_IN_PROGRESS = true;
         int width = getResources().getDisplayMetrics().widthPixels;
         frame.animate().translationX(-400).setDuration(ANIMATION_DURATION);
-        cFrame.animate().translationX(width-150).setDuration(ANIMATION_DURATION).setUpdateListener(animation -> {
-            dim.animate().translationX(-400).setDuration(ANIMATION_DURATION);
-            cDim.animate().translationX(width-150).setDuration(ANIMATION_DURATION).setUpdateListener(animation1 -> {
-                wake.animate().translationX(-400).setDuration(ANIMATION_DURATION);
-                cWake.animate().translationX(width-150).setDuration(ANIMATION_DURATION).setUpdateListener(listener);
-            });
+        cFrame.animate().translationX(width-150).setDuration(ANIMATION_DURATION).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                dim.animate().translationX(-400).setDuration(ANIMATION_DURATION);
+                cDim.animate().translationX(width-150).setDuration(ANIMATION_DURATION).setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        wake.animate().translationX(-400).setDuration(ANIMATION_DURATION);
+                        cWake.animate().translationX(width-150).setDuration(ANIMATION_DURATION).setListener(adapter);
+                    }
+                });
+            }
         });
         ANIMATION_IN_PROGRESS = false;
     }

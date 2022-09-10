@@ -3,6 +3,8 @@ package com.legendsayantan.screenery;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,7 +25,7 @@ import java.util.TimerTask;
 public class WakeActivity extends AppCompatActivity {
     CheckBox checkBox;
     Button timerBtn,colorBtn;
-    int ANIMATION_DURATION = 500;
+    int ANIMATION_DURATION = 250;
     ArrayList<RadioButton> radioButtons = new ArrayList<>();
     private boolean ANIMATION_IN_PROGRESS = false;
     SharedPreferences sharedPreferences;
@@ -74,15 +76,14 @@ public class WakeActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(ANIMATION_IN_PROGRESS)return;
-        runCloseAnimation(animation->{});
-        new Timer().schedule(new TimerTask() {
+        runCloseAnimation(new AnimatorListenerAdapter() {
             @Override
-            public void run() {
+            public void onAnimationEnd(Animator animation) {
                 startActivity(new Intent(getApplicationContext(),MainActivity.class)
                         .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 finish();
             }
-        },ANIMATION_DURATION*2L);
+        });
     }
 
     protected void refreshTheme(){
@@ -120,29 +121,41 @@ public class WakeActivity extends AppCompatActivity {
 
 
     }
-    protected void runOpenAnimation(ValueAnimator.AnimatorUpdateListener onComplete){
+    protected void runOpenAnimation(AnimatorListenerAdapter adapter){
         ANIMATION_IN_PROGRESS = true;
         int width = getResources().getDisplayMetrics().widthPixels;
         findViewById(R.id.hCard).setTranslationY(-500);
-        findViewById(R.id.hCard).animate().translationY(0).setDuration(ANIMATION_DURATION).setUpdateListener(animation -> {
-            findViewById(R.id.wakelockCard).setTranslationX(-width);
-            findViewById(R.id.wakelockCard).animate().translationX(-100).setDuration(ANIMATION_DURATION).setUpdateListener(animation1 -> {
-                findViewById(R.id.wakelockOverlayCard).setTranslationX(width);
-                findViewById(R.id.wakelockOverlayCard).animate().translationX(100).setDuration(ANIMATION_DURATION).setUpdateListener(onComplete);
-            });
+        findViewById(R.id.wakelockCard).setTranslationX(-width);
+        findViewById(R.id.wakelockOverlayCard).setTranslationX(width);
+        findViewById(R.id.hCard).animate().translationY(0).setDuration(ANIMATION_DURATION).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                findViewById(R.id.wakelockCard).animate().translationX(-100).setDuration(ANIMATION_DURATION).setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        findViewById(R.id.wakelockOverlayCard).animate().translationX(100).setDuration(ANIMATION_DURATION).setListener(adapter);
+                    }
+                });
+            }
         });
         ANIMATION_IN_PROGRESS = false;
     }
-    protected void runCloseAnimation(ValueAnimator.AnimatorUpdateListener onComplete){
+    protected void runCloseAnimation(AnimatorListenerAdapter adapter){
         ANIMATION_IN_PROGRESS = true;
         int width = getResources().getDisplayMetrics().widthPixels;
         findViewById(R.id.wakelockOverlayCard).setTranslationX(100);
-        findViewById(R.id.wakelockOverlayCard).animate().translationX(width).setDuration(ANIMATION_DURATION).setUpdateListener(animation -> {
-            findViewById(R.id.wakelockCard).setTranslationX(-100);
-            findViewById(R.id.wakelockCard).animate().translationX(-width).setDuration(ANIMATION_DURATION).setUpdateListener(animation1 -> {
-                findViewById(R.id.hCard).setTranslationY(0);
-                findViewById(R.id.hCard).animate().translationY(-500).setDuration(ANIMATION_DURATION).setUpdateListener(onComplete);
-            });
+        findViewById(R.id.wakelockCard).setTranslationX(-100);
+        findViewById(R.id.hCard).setTranslationY(0);
+        findViewById(R.id.wakelockOverlayCard).animate().translationX(width).setDuration(ANIMATION_DURATION).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                findViewById(R.id.wakelockCard).animate().translationX(-width).setDuration(ANIMATION_DURATION).setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        findViewById(R.id.hCard).animate().translationY(-500).setDuration(ANIMATION_DURATION).setListener(adapter);
+                    }
+                });
+            }
         });
         ANIMATION_IN_PROGRESS = false;
     }
