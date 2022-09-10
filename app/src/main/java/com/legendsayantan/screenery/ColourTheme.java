@@ -15,7 +15,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.palette.graphics.Palette;
@@ -101,25 +100,16 @@ public class ColourTheme {
     }
 
     public static void initView(View view){
-        if(nightUi){
-            view.setBackgroundColor(darkColor);
-        }else{
-            view.setBackgroundColor(lightColor);
-        }
+        view.setBackgroundColor(getSecondaryAccentColor());
     }
     @SuppressLint("ClickableViewAccessibility")
     public static void initCard(MaterialCardView cardView){
         activity.runOnUiThread(() -> {
-            if(nightUi){
-                cardView.setCardBackgroundColor(darkColor);
-                cardView.setStrokeColor(lightColor);
-            }else{
-                cardView.setCardBackgroundColor(lightColor);
-                cardView.setStrokeColor(darkColor);
-            }
+            cardView.setStrokeColor(getAccentColor());
+            cardView.setCardBackgroundColor(getSecondaryAccentColor());
             cardView.setOnTouchListener((v, event) -> {
                 if(event.getAction()==MotionEvent.ACTION_DOWN){
-                    cardView.setStrokeWidth(5);
+                    cardView.setStrokeWidth(10);
                 }if(event.getAction()==MotionEvent.ACTION_UP){
                     cardView.setStrokeWidth(0);
                     cardView.callOnClick();
@@ -135,7 +125,7 @@ public class ColourTheme {
             cardView.setOnTouchListener((v, event) -> {
                 if(event.getAction()==MotionEvent.ACTION_DOWN){
                     if(cardView.getStrokeWidth()==0){
-                        cardView.setStrokeWidth(5);
+                        cardView.setStrokeWidth(10);
                     }else cardView.setStrokeWidth(0);
                     onToggle.run();
                 }
@@ -145,39 +135,21 @@ public class ColourTheme {
     }
 
     public static void initText(TextView view){
-        if(nightUi){
-            view.setTextColor(lightColor);
-        }else{
-            view.setTextColor(darkColor);
-        }
+        view.setTextColor(getAccentColor());
     }
     public static void initTextView(TextView view){
-        activity.runOnUiThread(() -> {
-            if(nightUi){
-                view.setBackgroundColor(darkColor);
-                view.setTextColor(lightColor);
-            }else{
-                view.setBackgroundColor(lightColor);
-                view.setTextColor(darkColor);
-            }
-        });
+        initText(view);
+        view.setBackgroundColor(getSecondaryAccentColor());
     }
     public static void initImageView(ImageView view){
-        activity.runOnUiThread(() -> {
-            if(nightUi){
-                view.setBackgroundColor(darkColor);
-                view.setColorFilter(lightColor);
-            }else{
-                view.setBackgroundColor(lightColor);
-                view.setColorFilter(darkColor);
-            }
-        });
+        view.setColorFilter(getAccentColor());
+        view.setBackgroundColor(getSecondaryAccentColor());
     }
     public static int getAccentColor() {
         if (nightUi)return lightColor;
         else return darkColor;
     }
-    public static int getReverseAccentColor(){
+    public static int getSecondaryAccentColor(){
         if (!nightUi)return lightColor;
         else return darkColor;
     }

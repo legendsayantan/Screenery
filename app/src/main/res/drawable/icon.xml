@@ -1,0 +1,10 @@
+<!-- drawable/brightness_4.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="24dp"
+    android:width="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@color/ic_launcher_foreground"
+        android:pathData="M12,14.88C11.58,14.88 11.17,14.78 10.8,14.62C11.79,14.16 12.48,13.16 12.48,12C12.48,10.84 11.79,9.84 10.8,9.38C11.17,9.22 11.58,9.12 12,9.12A2.88,2.88 0 0,1 14.88,12A2.88,2.88 0 0,1 12,14.88M15.84,10.41V8.16H13.59L12,6.57L10.41,8.16H8.16V10.41L6.57,12L8.16,13.59V15.84H10.41L12,17.43L13.59,15.84H15.84V13.59L17.43,12L15.84,10.41Z" />
+</vector>

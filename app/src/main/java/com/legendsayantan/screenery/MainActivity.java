@@ -51,6 +51,10 @@ public class MainActivity extends AppCompatActivity {
         cDim=findViewById(R.id.customDim);
         cFrame=findViewById(R.id.customFrame);
         cWake.setOnClickListener(v -> {
+            if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
+                askForStorage();
+                return;
+            }
             if(ANIMATION_IN_PROGRESS)return;
             if(checkOverlay()){
                 runCloseAnimation(new AnimatorListenerAdapter() {
@@ -86,21 +90,7 @@ public class MainActivity extends AppCompatActivity {
             refreshTheme();
             runOpenAnimation(null);
         }else{
-            runCloseAnimation(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    showDialog("Storage Access is necessary for wallpaper based app theme.", v -> {
-                        if(ANIMATION_IN_PROGRESS)return;
-                        closeDialog(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},10);
-                                super.onAnimationEnd(animation);
-                            }
-                        });
-                    });
-                }
-            });
+            askForStorage();
 
         }
         super.onResume();
@@ -247,5 +237,20 @@ public class MainActivity extends AppCompatActivity {
         },ANIMATION_DURATION* 2L);
         ANIMATION_IN_PROGRESS = false;
     }
-
+    private void askForStorage(){
+        runCloseAnimation(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                showDialog("Storage Access is necessary for wallpaper based app theme.", v -> {
+                    if(ANIMATION_IN_PROGRESS)return;
+                    closeDialog(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},10);
+                        }
+                    });
+                });
+            }
+        });
+    }
 }

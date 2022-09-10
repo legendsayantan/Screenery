@@ -1,30 +1,40 @@
 package com.legendsayantan.screenery;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
+import android.hardware.camera2.params.ColorSpaceTransform;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.Gravity;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TimePicker;
+
+import com.google.android.material.button.MaterialButton;
+import com.larswerkman.holocolorpicker.ColorPicker;
+import com.larswerkman.holocolorpicker.OpacityBar;
 
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class WakeActivity extends AppCompatActivity {
     CheckBox checkBox;
-    Button timerBtn,colorBtn;
+    MaterialButton timerBtn,colorBtn;
     int ANIMATION_DURATION = 250;
     ArrayList<RadioButton> radioButtons = new ArrayList<>();
     private boolean ANIMATION_IN_PROGRESS = false;
@@ -49,20 +59,50 @@ public class WakeActivity extends AppCompatActivity {
         checkBox.setChecked(sharedPreferences.getBoolean("sleepDetect",false));
         checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> editor.putBoolean("sleepDetect",isChecked).apply());
         RadioGroup r1=findViewById(R.id.wakeSettings);
-        radioButtons.get(1).setChecked(true);
-        radioButtons.get(3).setChecked(true);
-        r1.check(sharedPreferences.getInt("wakeSettings",0));
-        r1.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeSettings",checkedId).apply());
+        r1.check(r1.getChildAt(sharedPreferences.getInt("wakeSettings",0)).getId());
+        r1.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeSettings",r1.indexOfChild(findViewById(checkedId))).apply());
         RadioGroup r2=findViewById(R.id.wakeOverlay);
-        r2.check(sharedPreferences.getInt("wakeOverlay",0));
-        r2.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeOverlay",checkedId).apply());
-
-
+        r2.check(r2.getChildAt(sharedPreferences.getInt("wakeOverlay",1)).getId());
+        r2.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeOverlay",r2.indexOfChild(findViewById(checkedId))).apply());
+        timerBtn.setText(sharedPreferences.getInt("waketime",90)/60+" : "+sharedPreferences.getInt("waketime",90)%60);
+        timerBtn.setOnClickListener(v -> {
+            TimePickerDialog timePickerDialog = new TimePickerDialog(this,
+                    (view, hourOfDay, minute) -> {
+                        editor.putInt("waketime",(hourOfDay*60+minute)).apply();
+                        timerBtn.setText(hourOfDay+" : "+minute);
+                    },
+                    sharedPreferences.getInt("waketime",90)/60,
+                    sharedPreferences.getInt("waketime",90)%60,
+                    true);
+            timePickerDialog.show();
+        });
+        colorBtn.setOnClickListener(v -> {
+            int[] color = new int[1];
+            color[0] = sharedPreferences.getInt("wakeColor",ColourTheme.getAccentColor());
+            ColorPicker colorPicker = new ColorPicker(getApplicationContext());
+            CardView cardView = new CardView(getApplicationContext());
+            cardView.setRadius(100);
+            cardView.setBackgroundColor(getColor(R.color.zero));
+            LinearLayout linearLayout = new LinearLayout(getApplicationContext());
+            linearLayout.setGravity(Gravity.CENTER);
+            linearLayout.setBackgroundColor(ColourTheme.getSecondaryAccentColor());
+            colorPicker.setColor(color[0]);
+            colorPicker.setOldCenterColor(color[0]);
+            linearLayout.addView(colorPicker);
+            colorPicker.setOnColorSelectedListener(color1 -> color[0] = color1);
+            cardView.addView(linearLayout);
+            Dialog dialog = new Dialog(WakeActivity.this);
+            dialog.addContentView(cardView,new ViewGroup.LayoutParams((int) (getResources().getDisplayMetrics().widthPixels*0.5), (int) (getResources().getDisplayMetrics().widthPixels*0.5)));
+            dialog.show();
+            dialog.setOnDismissListener(dialog1 -> {
+                editor.putInt("wakeColor",color[0]).apply();
+                colorBtn.setStrokeColor(ColorStateList.valueOf(color[0]));
+            });
+        });
     }
 
     @Override
     protected void onPause() {
-        System.out.println("Onpause");
         super.onPause();
     }
 
@@ -103,7 +143,7 @@ public class WakeActivity extends AppCompatActivity {
         ColourTheme.initText(findViewById(R.id.textView21));
 
         int accent = ColourTheme.getAccentColor();
-        int accent2 = ColourTheme.getReverseAccentColor();
+        int accent2 = ColourTheme.getSecondaryAccentColor();
         ColorStateList stateList = new ColorStateList(
                 new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}},
                 new int[]{accent,accent}
@@ -118,8 +158,8 @@ public class WakeActivity extends AppCompatActivity {
         timerBtn.setTextColor(accent2);
         colorBtn.setBackgroundTintList(stateList);
         colorBtn.setTextColor(accent2);
-
-
+        colorBtn.setStrokeColor(ColorStateList.valueOf(sharedPreferences.getInt("wakeColor", ColourTheme.getAccentColor())));
+        colorBtn.setStrokeWidth(5);
     }
     protected void runOpenAnimation(AnimatorListenerAdapter adapter){
         ANIMATION_IN_PROGRESS = true;

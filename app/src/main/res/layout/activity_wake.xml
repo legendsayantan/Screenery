@@ -84,14 +84,16 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Custom timer" />
-                    </RadioGroup>
 
-                    <Button
+
+                    </RadioGroup>
+                    <com.google.android.material.button.MaterialButton
                         android:textAllCaps="false"
                         android:id="@+id/button2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Timer settings" />
+                        android:text="00 : 00" />
+
 
                     <CheckBox
                         android:id="@+id/checkBox"
@@ -126,7 +128,7 @@
                         android:id="@+id/textView21"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Customise overlay"
+                        android:text="Customise indicator"
                         android:textSize="18dp" />
 
                     <RadioGroup
@@ -156,7 +158,9 @@
 
                     </RadioGroup>
 
-                    <Button
+
+
+                    <com.google.android.material.button.MaterialButton
                         android:textAllCaps="false"
                         android:id="@+id/button21"
                         android:layout_width="wrap_content"
