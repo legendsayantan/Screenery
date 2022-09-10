@@ -98,6 +98,7 @@
 
                 <ImageView
                     android:rotation="45"
+                    android:translationY="3dp"
                     android:id="@+id/dim"
                     android:layout_width="50dp"
                     android:layout_height="50dp"

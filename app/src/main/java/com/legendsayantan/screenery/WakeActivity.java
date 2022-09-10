@@ -47,11 +47,15 @@ public class WakeActivity extends AppCompatActivity {
         checkBox.setChecked(sharedPreferences.getBoolean("sleepDetect",false));
         checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> editor.putBoolean("sleepDetect",isChecked).apply());
         RadioGroup r1=findViewById(R.id.wakeSettings);
+        radioButtons.get(1).setChecked(true);
+        radioButtons.get(3).setChecked(true);
         r1.check(sharedPreferences.getInt("wakeSettings",0));
         r1.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeSettings",checkedId).apply());
         RadioGroup r2=findViewById(R.id.wakeOverlay);
-        r2.check(sharedPreferences.getInt("wakeOverlay",1));
+        r2.check(sharedPreferences.getInt("wakeOverlay",0));
         r2.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeOverlay",checkedId).apply());
+
+
     }
 
     @Override
