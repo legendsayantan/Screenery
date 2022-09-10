@@ -64,12 +64,12 @@ public class WakeActivity extends AppCompatActivity {
         RadioGroup r2=findViewById(R.id.wakeOverlay);
         r2.check(r2.getChildAt(sharedPreferences.getInt("wakeOverlay",1)).getId());
         r2.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeOverlay",r2.indexOfChild(findViewById(checkedId))).apply());
-        timerBtn.setText(sharedPreferences.getInt("waketime",90)/60+" : "+sharedPreferences.getInt("waketime",90)%60);
+        timerBtn.setText(sharedPreferences.getInt("waketime",90)/60+"h "+sharedPreferences.getInt("waketime",90)%60+"min");
         timerBtn.setOnClickListener(v -> {
             TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                     (view, hourOfDay, minute) -> {
                         editor.putInt("waketime",(hourOfDay*60+minute)).apply();
-                        timerBtn.setText(hourOfDay+" : "+minute);
+                        timerBtn.setText(hourOfDay+"h "+minute+"min");
                     },
                     sharedPreferences.getInt("waketime",90)/60,
                     sharedPreferences.getInt("waketime",90)%60,
