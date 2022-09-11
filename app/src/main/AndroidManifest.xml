@@ -3,11 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.legendsayantan.screenery">
 
-
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.BIND_QUICK_SETTINGS_TILE"
+    <uses-permission
+        android:name="android.permission.BIND_QUICK_SETTINGS_TILE"
         tools:ignore="ProtectedPermissions" />
 
     <application
@@ -15,14 +16,21 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.Screenery">
         <service
-            android:name=".WakeTileService"
-            android:label="@string/waketile"
-            android:icon="@drawable/ic_outline_wb_sunny_24"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:name=".WakeFloatingService"
+            android:enabled="true"
             android:exported="true">
+
+        </service>
+        <service
+            android:name=".WakeTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_outline_wb_sunny_24"
+            android:label="@string/waketile"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.service.quicksettings.ACTIVE_TILE"
                 android:value="true" />
@@ -36,7 +44,8 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES"/>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

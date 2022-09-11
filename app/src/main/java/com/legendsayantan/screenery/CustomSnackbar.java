@@ -44,7 +44,7 @@ public class CustomSnackbar {
         mCardView.addView(textView);
         snackbarLayout.addView(mCardView);
         snackbar.show();
-        new Timer().schedule(new TimerTask() {
+        if(dismissDelay!=0)new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 snackbar.dismiss();

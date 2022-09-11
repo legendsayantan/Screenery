@@ -156,9 +156,13 @@ public class MainActivity extends AppCompatActivity {
                 WakeTileService.requestListeningState(getApplicationContext(),
                         new ComponentName(getApplicationContext(),WakeTileService.class));
                 if (wake.getStrokeWidth() == 0) {
-                    WakeTileService.disableTile();
+                    try {
+                        WakeFloatingService.killSelf();
+                    }catch (Exception e){
+                        WakeTileService.disableTile();
+                    }
                 } else {
-                    WakeTileService.enableTile();
+                    WakeTileService.enableTile(getApplicationContext());
                 }
             }else{
                 if (wake.getStrokeWidth() == 0) {

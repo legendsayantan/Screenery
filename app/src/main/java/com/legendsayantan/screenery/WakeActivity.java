@@ -12,6 +12,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -70,18 +71,23 @@ public class WakeActivity extends AppCompatActivity {
         RadioGroup r2=findViewById(R.id.wakeOverlay);
         r2.check(r2.getChildAt(sharedPreferences.getInt("wakeOverlay",1)).getId());
         r2.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeOverlay",r2.indexOfChild(findViewById(checkedId))).apply());
-        timerBtn.setText(sharedPreferences.getInt("waketime",90)/60+"h "+sharedPreferences.getInt("waketime",90)%60+"min");
+        timerBtn.setText(sharedPreferences.getInt("wakeTime",90)/60+"h "+sharedPreferences.getInt("wakeTime",90)%60+"min");
         timerBtn.setOnClickListener(v -> {
             TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                     (view, hourOfDay, minute) -> {
-                        editor.putInt("waketime",(hourOfDay*60+minute)).apply();
+                        if((hourOfDay*60+minute)<5){
+                            new CustomSnackbar(hCard,"Warning : Timer too small.",WakeActivity.this,0);
+                        }
+                        editor.putInt("wakeTime",(hourOfDay*60+minute)).apply();
                         timerBtn.setText(hourOfDay+"h "+minute+"min");
                     },
-                    sharedPreferences.getInt("waketime",90)/60,
-                    sharedPreferences.getInt("waketime",90)%60,
+                    sharedPreferences.getInt("wakeTime",90)/60,
+                    sharedPreferences.getInt("wakeTime",90)%60,
                     true);
             timePickerDialog.show();
         });
+        if(sharedPreferences.getInt("wakeColor", -1)==-1)
+            editor.putInt("wakeColor",ColourTheme.getAccentColor()).apply();
         colorBtn.setOnClickListener(v -> {
             int[] color = new int[1];
             color[0] = sharedPreferences.getInt("wakeColor",ColourTheme.getAccentColor());
@@ -162,9 +168,13 @@ public class WakeActivity extends AppCompatActivity {
                 WakeTileService.requestListeningState(getApplicationContext(),
                         new ComponentName(getApplicationContext(),WakeTileService.class));
                 if (hCard.getStrokeWidth() == 0) {
-                    WakeTileService.disableTile();
+                    try {
+                        WakeFloatingService.killSelf();
+                    }catch (Exception e){
+                        WakeTileService.disableTile();
+                    }
                 } else {
-                    WakeTileService.enableTile();
+                    WakeTileService.enableTile(getApplicationContext());
                 }
             }else{
                 if (hCard.getStrokeWidth() == 0) {
@@ -240,7 +250,7 @@ public class WakeActivity extends AppCompatActivity {
         ANIMATION_IN_PROGRESS = false;
     }
     public static void wakeCardToggle(int tileState){
-        if(tileState== Tile.STATE_ACTIVE){
+        if(tileState==Tile.STATE_ACTIVE){
             hCard.setStrokeWidth(10);
         }else hCard.setStrokeWidth(0);
     }
