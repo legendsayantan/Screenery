@@ -2,15 +2,19 @@ package com.legendsayantan.screenery;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Build;
@@ -64,7 +68,27 @@ public class WakeActivity extends AppCompatActivity {
         timerBtn = findViewById(R.id.button2);
         colorBtn = findViewById(R.id.button21);
         checkBox.setChecked(sharedPreferences.getBoolean("sleepDetect",false));
-        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> editor.putBoolean("sleepDetect",isChecked).apply());
+        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED){
+                    editor.putBoolean("sleepDetect", isChecked).apply();
+                }
+                else {
+                    buttonView.setChecked(false);
+                    new CustomSnackbar(buttonView, "Grant activity recognition for sleep detection.", WakeActivity.this, 0);
+                    runCloseAnimation(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 230);
+                        }
+                    });
+                }
+            }else{
+                requestPermissions(new String[]{"com.google.android.gms.permission.ACTIVITY_RECOGNITION"},230);
+                new CustomSnackbar(buttonView, "Sleep detection is supported on Android 10 and later versions.", WakeActivity.this, 0);
+                buttonView.setChecked(false);
+            }
+        });
         RadioGroup r1=findViewById(R.id.wakeSettings);
         r1.check(r1.getChildAt(sharedPreferences.getInt("wakeSettings",0)).getId());
         r1.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeSettings",r1.indexOfChild(findViewById(checkedId))).apply());
@@ -178,9 +202,11 @@ public class WakeActivity extends AppCompatActivity {
                 }
             }else{
                 if (hCard.getStrokeWidth() == 0) {
-                    //TODO
+                    try {
+                        WakeFloatingService.killSelf();
+                    }catch (Exception e){}
                 } else {
-                    //TODO
+                    startWake(getApplicationContext());
                 }
             }
         });
@@ -253,5 +279,11 @@ public class WakeActivity extends AppCompatActivity {
         if(tileState==Tile.STATE_ACTIVE){
             hCard.setStrokeWidth(10);
         }else hCard.setStrokeWidth(0);
+    }
+    public static void startWake(Context context){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O )
+            context.startForegroundService(new Intent(context, WakeFloatingService.class));
+        else
+            context.startService(new Intent(context,WakeFloatingService.class));
     }
 }
