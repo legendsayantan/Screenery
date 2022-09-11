@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name" translatable="false">Screenery</string>
+    <string name="waketile" translatable="false">Screen wake</string>
 </resources>

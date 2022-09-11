@@ -5,32 +5,35 @@ import androidx.cardview.widget.CardView;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
-import android.content.DialogInterface;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.content.res.Resources;
-import android.hardware.camera2.params.ColorSpaceTransform;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.service.quicksettings.Tile;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TimePicker;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.larswerkman.holocolorpicker.ColorPicker;
-import com.larswerkman.holocolorpicker.OpacityBar;
 
 import java.util.ArrayList;
+
+/**
+ * @author legendsayantan
+ */
 
 public class WakeActivity extends AppCompatActivity {
     CheckBox checkBox;
@@ -40,7 +43,9 @@ public class WakeActivity extends AppCompatActivity {
     private boolean ANIMATION_IN_PROGRESS = false;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
+    static MaterialCardView hCard;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +53,7 @@ public class WakeActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
         sharedPreferences  = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         editor = sharedPreferences.edit();
+        hCard = findViewById(R.id.hCard);
         radioButtons.add(findViewById(R.id.radioButton1));
         radioButtons.add(findViewById(R.id.radioButton2));
         radioButtons.add(findViewById(R.id.radioButton3));
@@ -92,7 +98,11 @@ public class WakeActivity extends AppCompatActivity {
             colorPicker.setOnColorSelectedListener(color1 -> color[0] = color1);
             cardView.addView(linearLayout);
             Dialog dialog = new Dialog(WakeActivity.this);
-            dialog.addContentView(cardView,new ViewGroup.LayoutParams((int) (getResources().getDisplayMetrics().widthPixels*0.5), (int) (getResources().getDisplayMetrics().widthPixels*0.5)));
+            dialog.addContentView(cardView,
+                    new ViewGroup.LayoutParams(
+                            (int) (getResources().getDisplayMetrics().widthPixels*0.5),
+                            (int) (getResources().getDisplayMetrics().widthPixels*0.5)
+                    ));
             dialog.show();
             dialog.setOnDismissListener(dialog1 -> {
                 editor.putInt("wakeColor",color[0]).apply();
@@ -109,13 +119,27 @@ public class WakeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         refreshTheme();
-        runOpenAnimation(null);
+        runOpenAnimation(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    WakeTileService.requestListeningState(getApplicationContext(),
+                            new ComponentName(getApplicationContext(),WakeTileService.class));
+                    try {
+                        wakeCardToggle(WakeTileService.qsTile.getState());
+                    }catch (NullPointerException ignored){}
+                }
+            }
+        });
         super.onResume();
     }
 
     @Override
     public void onBackPressed() {
         if(ANIMATION_IN_PROGRESS)return;
+        if(hCard.getStrokeWidth()!=0){
+            new CustomSnackbar(hCard,"Toggle Screen Wake to apply changes.",WakeActivity.this,ANIMATION_DURATION* 2L);
+        }
         runCloseAnimation(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -134,7 +158,21 @@ public class WakeActivity extends AppCompatActivity {
         window.setStatusBarColor(ColourTheme.getDominantColor());
         ColourTheme.initContainer(findViewById(R.id.back));
         ColourTheme.initCardToggle(findViewById(R.id.hCard), () -> {
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ) {
+                WakeTileService.requestListeningState(getApplicationContext(),
+                        new ComponentName(getApplicationContext(),WakeTileService.class));
+                if (hCard.getStrokeWidth() == 0) {
+                    WakeTileService.disableTile();
+                } else {
+                    WakeTileService.enableTile();
+                }
+            }else{
+                if (hCard.getStrokeWidth() == 0) {
+                    //TODO
+                } else {
+                    //TODO
+                }
+            }
         });
         ColourTheme.initCard(findViewById(R.id.wakelockCard));
         ColourTheme.initCard(findViewById(R.id.wakelockOverlayCard));
@@ -160,6 +198,8 @@ public class WakeActivity extends AppCompatActivity {
         colorBtn.setTextColor(accent2);
         colorBtn.setStrokeColor(ColorStateList.valueOf(sharedPreferences.getInt("wakeColor", ColourTheme.getAccentColor())));
         colorBtn.setStrokeWidth(5);
+        CustomSnackbar.setAccentColor(ColourTheme.getAccentColor());
+        CustomSnackbar.setBgColor(ColourTheme.getSecondaryAccentColor());
     }
     protected void runOpenAnimation(AnimatorListenerAdapter adapter){
         ANIMATION_IN_PROGRESS = true;
@@ -198,5 +238,10 @@ public class WakeActivity extends AppCompatActivity {
             }
         });
         ANIMATION_IN_PROGRESS = false;
+    }
+    public static void wakeCardToggle(int tileState){
+        if(tileState== Tile.STATE_ACTIVE){
+            hCard.setStrokeWidth(10);
+        }else hCard.setStrokeWidth(0);
     }
 }

@@ -21,6 +21,10 @@ import androidx.palette.graphics.Palette;
 
 import com.google.android.material.card.MaterialCardView;
 
+/**
+ * @author legendsayantan
+ */
+
 public class ColourTheme {
     private static Drawable drawable;
     private static int lightColor;

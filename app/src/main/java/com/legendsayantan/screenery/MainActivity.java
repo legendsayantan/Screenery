@@ -10,11 +10,14 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.service.quicksettings.Tile;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -27,17 +30,21 @@ import com.google.android.material.card.MaterialCardView;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * @author legendsayantan
+ */
+
 public class MainActivity extends AppCompatActivity {
     ConstraintLayout background;
-    MaterialCardView wake;
-    MaterialCardView dim;
-    MaterialCardView frame;
+    static MaterialCardView wake;
+    static MaterialCardView dim;
+    static MaterialCardView frame;
     MaterialCardView cWake;
     MaterialCardView cDim;
     MaterialCardView cFrame;
     boolean ANIMATION_IN_PROGRESS = false;
     int ANIMATION_DURATION = 250;
-
+    Runnable actionRunnable  = () -> {};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,18 +88,37 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
-
+        if(getIntent().getIntExtra("action",-1)==0){
+            actionRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    cWake.callOnClick();
+                }
+            };
+        }
     }
     @Override
     protected void onResume() {
         findViewById(R.id.dialog).setVisibility(View.GONE);
         if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
             refreshTheme();
-            runOpenAnimation(null);
+            runOpenAnimation(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        WakeTileService.requestListeningState(getApplicationContext(),
+                                new ComponentName(getApplicationContext(),WakeTileService.class));
+                        try {
+                            wakeCardToggle(WakeTileService.qsTile.getState());
+                        }catch (NullPointerException n){}
+                    }
+                    actionRunnable.run();
+                }
+            });
         }else{
             askForStorage();
-
         }
+
         super.onResume();
     }
 
@@ -124,8 +150,23 @@ public class MainActivity extends AppCompatActivity {
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.setStatusBarColor(ColourTheme.getDominantColor());
         ColourTheme.initContainer(background);
-        ColourTheme.initCardToggle(wake, () -> {
 
+        ColourTheme.initCardToggle(wake, () -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ) {
+                WakeTileService.requestListeningState(getApplicationContext(),
+                        new ComponentName(getApplicationContext(),WakeTileService.class));
+                if (wake.getStrokeWidth() == 0) {
+                    WakeTileService.disableTile();
+                } else {
+                    WakeTileService.enableTile();
+                }
+            }else{
+                if (wake.getStrokeWidth() == 0) {
+                    //TODO
+                } else {
+                    //TODO
+                }
+            }
         });
         ColourTheme.initCardToggle(dim, () -> {
 
@@ -252,5 +293,10 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+    public static void wakeCardToggle(int tileState){
+        if(tileState==Tile.STATE_ACTIVE){
+            wake.setStrokeWidth(10);
+        }else wake.setStrokeWidth(0);
     }
 }
