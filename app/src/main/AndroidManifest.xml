@@ -11,20 +11,30 @@
     <uses-permission
         android:name="android.permission.BIND_QUICK_SETTINGS_TILE"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.Screenery">
+        <activity
+            android:name=".FrameActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".SleepReceiver"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
 
         <service
             android:name=".WakeFloatingService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
+        <service
+            android:name=".DimFloatingService"
+            android:enabled="true"
+            android:exported="true" />
         <service
             android:name=".WakeTileService"
             android:exported="true"
@@ -39,9 +49,26 @@
                 android:name="android.service.quicksettings.ACTIVE_TILE"
                 android:value="true" />
         </service>
+        <service
+            android:name=".DimTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_outline_mode_night_24"
+            android:label="@string/dimtile"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="true" />
+        </service>
 
         <activity
             android:name=".WakeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DimActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

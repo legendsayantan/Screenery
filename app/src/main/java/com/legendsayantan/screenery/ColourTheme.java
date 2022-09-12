@@ -7,6 +7,7 @@ import android.app.WallpaperManager;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
@@ -122,6 +123,7 @@ public class ColourTheme {
             });
         });
     }
+
     @SuppressLint("ClickableViewAccessibility")
     public static void initCardToggle(MaterialCardView cardView,Runnable onToggle){
         activity.runOnUiThread(() -> {
@@ -156,6 +158,9 @@ public class ColourTheme {
     public static int getSecondaryAccentColor(){
         if (!nightUi)return lightColor;
         else return darkColor;
+    }
+    public static int getMedianColour(){
+        return ColorUtils.blendARGB(lightColor,darkColor,0.5f);
     }
     public static void initContainer(View parent){
         activity.runOnUiThread(() -> {

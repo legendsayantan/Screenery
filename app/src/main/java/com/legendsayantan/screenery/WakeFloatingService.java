@@ -52,6 +52,7 @@ public class WakeFloatingService extends Service {
     static int LAYOUT_TYPE;
     private static CardView mCardView;
     int statusBarHeight;
+    Timer customTimer = new Timer();
 
 
     public WakeFloatingService() {
@@ -207,7 +208,7 @@ public class WakeFloatingService extends Service {
         int finishMinute = minuteBlock(System.currentTimeMillis()) + preferences.getInt("wakeTime", 90);
         boolean update = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
         if (preferences.getInt("wakeSettings", 0) == 1) {
-            new Timer().scheduleAtFixedRate(new TimerTask() {
+            customTimer.scheduleAtFixedRate(new TimerTask() {
                 @SuppressLint("NewApi")
                 @Override
                 public void run() {
@@ -216,9 +217,11 @@ public class WakeFloatingService extends Service {
                         stopForeground(true);
                         stopSelf();
                     } else if (update) {
-                        WakeTileService.requestListeningState(getApplicationContext(), new ComponentName(getApplicationContext(), WakeTileService.class));
-                        WakeTileService.qsTile.setSubtitle(remainTime / 60 + "h " + remainTime % 60 + "min");
-                        WakeTileService.qsTile.updateTile();
+                        try {
+                            WakeTileService.requestListeningState(getApplicationContext(), new ComponentName(getApplicationContext(), WakeTileService.class));
+                            WakeTileService.qsTile.setSubtitle(remainTime / 60 + "h " + remainTime % 60 + "min");
+                            WakeTileService.qsTile.updateTile();
+                        }catch (Exception ignored){};
                     }
                 }
             }, 0, 60000);
@@ -273,7 +276,10 @@ public class WakeFloatingService extends Service {
         }catch (Exception ignored){}
         try {
             windowManager.removeView(mCardView);
-        }catch (Exception e){}
+        }catch (Exception ignored){}
+        try {
+            customTimer.cancel();
+        }catch (Exception ignored){}
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             WakeTileService.requestListeningState(getApplicationContext(),new ComponentName(getApplicationContext(),WakeTileService.class));
             WakeTileService.disableTile();
@@ -282,6 +288,7 @@ public class WakeFloatingService extends Service {
             ActivityRecognition.getClient(getApplicationContext()).removeSleepSegmentUpdates(pendingIntent);
         }catch (Exception e){}
         System.out.println("killed service");
+        service=null;
         super.onDestroy();
     }
     public static void killSelf(){
@@ -311,7 +318,7 @@ public class WakeFloatingService extends Service {
         TextView textView = new TextView(service);
         Typeface typeface = ResourcesCompat.getFont(service.getApplicationContext(), R.font.font);
         textView.setGravity(Gravity.CENTER);
-        String text = "Screenery has detected you sleeping.\n";
+        String text = "Screenery has detected you are sleeping.\n";
         text = preferences.getBoolean("sleepDetect", false)?text+"Screen wake ":text;
         text = preferences.getBoolean("sleepDetect", false)&&preferences.getBoolean("sleepMedia", false)?
                 text+"and ":text;
@@ -325,13 +332,10 @@ public class WakeFloatingService extends Service {
         mCardView.setRadius(100);
         mCardView.addView(textView);
         mCardView.setPadding(size/10,size/10,size/10,size/10);
-        mCardView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                windowManager.removeView(mCardView);
-                timer.cancel();
-                return true;
-            }
+        mCardView.setOnTouchListener((v, event) -> {
+            windowManager.removeView(mCardView);
+            timer.cancel();
+            return true;
         });
         timer.schedule(new TimerTask() {
             @Override

@@ -101,13 +101,15 @@ public class WakeTileService extends android.service.quicksettings.TileService {
 
     public static void enableTile(Context context){
         if(!checkOverlay(context)){
-            context.startActivity(new Intent(context,WakeActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(new Intent(context,MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     .putExtra("action",0));
             return;
         }
         if(qsTile==null){
             System.out.println("nulltile");
-            Toast.makeText(context.getApplicationContext(), "Quick settings tile error",Toast.LENGTH_LONG).show();
+            requestListeningState(context,new ComponentName(context,WakeTileService.class));
+            Toast.makeText(context.getApplicationContext(), "Use the quick settings tile as a shortcut.",Toast.LENGTH_LONG).show();
+            startWake(context);
             return;
         }
         qsTile.setState(Tile.STATE_ACTIVE);

@@ -1,6 +1,5 @@
 package com.legendsayantan.screenery;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -9,10 +8,10 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,9 +20,7 @@ import android.service.quicksettings.Tile;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.material.card.MaterialCardView;
 
@@ -45,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     boolean ANIMATION_IN_PROGRESS = false;
     int ANIMATION_DURATION = 250;
     Runnable actionRunnable  = () -> {};
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,9 +87,54 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+        cDim.setOnClickListener(v -> {
+            if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
+                askForStorage();
+                return;
+            }
+            if(ANIMATION_IN_PROGRESS)return;
+            if(checkOverlay()){
+                runCloseAnimation(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        startActivity(new Intent(getApplicationContext(),DimActivity.class));
+                    }
+                });
+            }else{
+                runCloseAnimation(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        showDialog("Screen overlay permission is necessary to dim screen brightness.\n\nFind Screenery and enable this permission in the next screen.", v1 -> {
+                            closeDialog(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    getOverlayPerm();
+                                }
+                            });
+                        });
+                    }
+                });
+            }
+        });
+        cFrame.setOnClickListener(v -> {
+            new CustomSnackbar(frame,"Empty space for future features",MainActivity.this,0);
+            /*
+            if(verifyFrame()){
+                runCloseAnimation(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        startActivity(new Intent(getApplicationContext(),FrameActivity.class));
+                    }
+                });
+            }
+             */
+        });
         actionRunnable = () -> {};
         if(getIntent().getIntExtra("action",-1)==0){
             actionRunnable = () -> cWake.callOnClick();
+        }if(getIntent().getIntExtra("action",-1)==1){
+            actionRunnable = () -> cDim.callOnClick();
         }
     }
     @Override
@@ -105,6 +150,11 @@ public class MainActivity extends AppCompatActivity {
                                 new ComponentName(getApplicationContext(),WakeTileService.class));
                         try {
                             wakeCardToggle(WakeTileService.qsTile.getState());
+                        }catch (NullPointerException n){}
+                        DimTileService.requestListeningState(getApplicationContext(),
+                                new ComponentName(getApplicationContext(),DimTileService.class));
+                        try {
+                            dimCardToggle(DimTileService.qsTile.getState());
                         }catch (NullPointerException n){}
                     }
                     actionRunnable.run();
@@ -161,17 +211,40 @@ public class MainActivity extends AppCompatActivity {
                 }
             }else{
                 if (wake.getStrokeWidth() == 0) {
-                    //TODO
+                    try {
+                        WakeFloatingService.killSelf();
+                    }catch (Exception ignored){}
                 } else {
-                    //TODO
+                    startService(new Intent(getApplicationContext(),DimFloatingService.class));
                 }
             }
         });
         ColourTheme.initCardToggle(dim, () -> {
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ) {
+                DimTileService.requestListeningState(getApplicationContext(),
+                        new ComponentName(getApplicationContext(),DimTileService.class));
+                if (dim.getStrokeWidth() == 0) {
+                    try {
+                        DimFloatingService.killSelf();
+                    }catch (Exception e){
+                        DimTileService.disableTile();
+                    }
+                } else {
+                    DimTileService.enableTile(getApplicationContext());
+                }
+            }else{
+                if (dim.getStrokeWidth() == 0) {
+                    try {
+                        DimFloatingService.killSelf();
+                    }catch (Exception ignored){}
+                } else {
+                    startService(new Intent(getApplicationContext(),DimFloatingService.class));
+                }
+            }
         });
         ColourTheme.initCardToggle(frame, () -> {
-
+            new CustomSnackbar(frame,"Empty space for future features",MainActivity.this,0);
+            frame.setStrokeWidth(0);
         });
         ColourTheme.initCard(cWake);
         ColourTheme.initCard(cDim);
@@ -190,7 +263,8 @@ public class MainActivity extends AppCompatActivity {
         t.setTextColor(ColourTheme.getAccentColor());
         ColourTheme.initText(findViewById(R.id.dialogtext));
         ColourTheme.initText(findViewById(R.id.dialog_btn));
-
+        CustomSnackbar.setAccentColor(ColourTheme.getAccentColor());
+        CustomSnackbar.setBgColor(ColourTheme.getSecondaryAccentColor());
     }
 
     public void getOverlayPerm() {
@@ -297,5 +371,41 @@ public class MainActivity extends AppCompatActivity {
         if(tileState==Tile.STATE_ACTIVE){
             wake.setStrokeWidth(10);
         }else wake.setStrokeWidth(0);
+    }
+    public static void dimCardToggle(int tileState) {
+        if(tileState==Tile.STATE_ACTIVE){
+            dim.setStrokeWidth(10);
+        }else dim.setStrokeWidth(0);
+    }
+    public String screenFrame(){
+        String frame;
+        frame = Settings.System.getString(getContentResolver(),"peak_refresh_rate");
+        if(frame==null)frame = Settings.System.getString(getContentResolver(),"user_refresh_rate");
+        return frame;
+    }
+    public boolean verifyFrame(){
+        if(screenFrame()==null){
+            frame.setStrokeWidth(0);
+            new CustomSnackbar(frame,"Your device is not compatible.",MainActivity.this,0);
+            return false;
+        }else {
+            if (!Settings.System.canWrite(getApplicationContext())) {
+                runCloseAnimation(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        showDialog("Settings modification permission is necessary to change refresh rate.\n\nFind Screenery and enable this permission in the next screen.", v1 -> {
+                            closeDialog(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:"+getPackageName()))
+                                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                                }
+                            });
+                        });
+                    }
+                });
+                return false;
+            }return true;
+        }
     }
 }

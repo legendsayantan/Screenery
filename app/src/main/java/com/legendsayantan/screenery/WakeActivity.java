@@ -277,8 +277,8 @@ public class WakeActivity extends AppCompatActivity {
         colorBtn.setTextColor(accent2);
         colorBtn.setStrokeColor(ColorStateList.valueOf(sharedPreferences.getInt("wakeColor", ColourTheme.getAccentColor())));
         colorBtn.setStrokeWidth(5);
-        CustomSnackbar.setAccentColor(ColourTheme.getAccentColor());
-        CustomSnackbar.setBgColor(ColourTheme.getSecondaryAccentColor());
+        CustomSnackbar.setAccentColor(accent);
+        CustomSnackbar.setBgColor(accent2);
     }
     protected void runOpenAnimation(AnimatorListenerAdapter adapter){
         ANIMATION_IN_PROGRESS = true;
