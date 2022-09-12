@@ -29,7 +29,7 @@ public class SleepReceiver extends BroadcastReceiver {
             AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
             if(preferences.getBoolean("sleepDetect",false)||
                     (preferences.getBoolean("sleepMedia",false)&&audioManager.isMusicActive()))
-            if(light<=2&&motion<=2)
+            if(light<=3&&motion<=2)
                 if(confidence-(motion*10)-(light*5)>=70){
                     WakeFloatingService.sleepKill();
                 }

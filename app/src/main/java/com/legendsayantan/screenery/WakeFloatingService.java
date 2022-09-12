@@ -162,7 +162,7 @@ public class WakeFloatingService extends Service {
                         wakeView.animate().scaleY(2f);
                         try {
                             windowManager.addView(closeLayout, params);
-                        }catch (Exception e){}
+                        }catch (Exception ignored){}
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
                         wakeView.animate().scaleX(1f);
                         wakeView.animate().scaleY(1f);
@@ -320,6 +320,7 @@ public class WakeFloatingService extends Service {
         textView.setText(text);
         textView.setTypeface(typeface);
         textView.setTextColor(preferences.getInt("wakeColor",Color.WHITE));
+        textView.setPadding(size/15,size/15,size/15,size/15);
         mCardView.setCardBackgroundColor(preferences.getInt("wakeColor",Color.WHITE));
         mCardView.setRadius(100);
         mCardView.addView(textView);
