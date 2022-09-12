@@ -108,6 +108,7 @@ public class DimActivity extends AppCompatActivity {
                         if(hCard.getStrokeWidth()!=0)new CustomSnackbar(hCard,"Toggle Screen Dim to apply changes.", DimActivity.this,0);
                         runOpenAnimation(null);
                     });
+                    if(menu.isOpen())menu.close(true);
                 }
             });
         });
