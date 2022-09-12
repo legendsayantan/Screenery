@@ -15,6 +15,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.service.quicksettings.Tile;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
@@ -40,7 +41,7 @@ public class WakeTileService extends android.service.quicksettings.TileService {
 
     @Override
     public void onClick() {
-        super.onClick();
+        if(getQsTile().getState()==Tile.STATE_UNAVAILABLE)getQsTile().setState(Tile.STATE_INACTIVE);
         Tile tile = getQsTile();
         qsTile=getQsTile();
         if (tile.getState() == Tile.STATE_INACTIVE) {
@@ -70,8 +71,6 @@ public class WakeTileService extends android.service.quicksettings.TileService {
     public void onStartListening() {
         System.out.println("Listening ");
         qsTile=getQsTile();
-
-        if(getQsTile().getState()==Tile.STATE_UNAVAILABLE)getQsTile().setState(Tile.STATE_INACTIVE);
         preferences= PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         super.onStartListening();
     }
@@ -85,6 +84,9 @@ public class WakeTileService extends android.service.quicksettings.TileService {
     @Override
     public void onTileAdded() {
         System.out.println("OnTileAdded");
+        requestListeningState(getApplicationContext(),new ComponentName(getApplicationContext(),WakeTileService.class));
+        qsTile=getQsTile();
+        WakeTileService.qsTile.updateTile();
         super.onTileAdded();
     }
     public static boolean checkOverlay(Context context) {
@@ -98,13 +100,14 @@ public class WakeTileService extends android.service.quicksettings.TileService {
 
 
     public static void enableTile(Context context){
-        if(qsTile==null){
-            System.out.println("nulltile");
+        if(!checkOverlay(context)){
+            context.startActivity(new Intent(context,WakeActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .putExtra("action",0));
             return;
         }
-        if(!checkOverlay(context)){
-            context.startActivity(new Intent(context,MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    .putExtra("action",0));
+        if(qsTile==null){
+            System.out.println("nulltile");
+            Toast.makeText(context.getApplicationContext(), "Quick settings tile error",Toast.LENGTH_LONG).show();
             return;
         }
         qsTile.setState(Tile.STATE_ACTIVE);

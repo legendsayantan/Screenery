@@ -1,10 +1,7 @@
 package com.legendsayantan.screenery;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -15,26 +12,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
-import android.view.DragEvent;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Space;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.cardview.widget.CardView;
@@ -43,13 +38,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.google.android.gms.location.ActivityRecognition;
-import com.google.android.gms.location.SleepSegmentEvent;
 import com.google.android.gms.location.SleepSegmentRequest;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.card.MaterialCardView;
 
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -60,6 +50,9 @@ public class WakeFloatingService extends Service {
     static PendingIntent pendingIntent;
     static SharedPreferences preferences;
     static int LAYOUT_TYPE;
+    private static CardView mCardView;
+    int statusBarHeight;
+
 
     public WakeFloatingService() {
     }
@@ -89,6 +82,9 @@ public class WakeFloatingService extends Service {
         } else {
             LAYOUT_TYPE = WindowManager.LayoutParams.TYPE_TOAST;
         }
+
+        statusBarHeight = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if(statusBarHeight>0)statusBarHeight=getResources().getDimensionPixelSize(statusBarHeight);
         WindowManager.LayoutParams floatWindowLayoutParam;
         switch (preferences.getInt("wakeOverlay", 1)) {
             case 1:
@@ -115,11 +111,14 @@ public class WakeFloatingService extends Service {
                         WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
                         PixelFormat.TRANSLUCENT
                 );
+
+                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
                 floatWindowLayoutParam.x = preferences.getInt("wakeX", 50);
                 floatWindowLayoutParam.y = preferences.getInt("wakeY", 50);
                 CardView cardView = new CardView(getApplicationContext());
                 cardView.setRadius(50);
                 cardView.setKeepScreenOn(true);
+                cardView.setCardBackgroundColor(getColor(R.color.ic_launcher_background));
                 ImageView imageView2 = new ImageView(getApplicationContext());
                 imageView2.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_outline_wb_sunny_24));
                 imageView2.setColorFilter(preferences.getInt("wakeColor", Color.BLACK));
@@ -128,40 +127,64 @@ public class WakeFloatingService extends Service {
                 imageView2.setScaleY(0.75f);
                 cardView.addView(imageView2);
                 //Close button
+                LinearLayout closeLayout = new LinearLayout(getApplicationContext());
+                closeLayout.setMinimumHeight(150);
+                closeLayout.setMinimumWidth(350);
+                closeLayout.setOrientation(LinearLayout.HORIZONTAL);
+                ImageView settings = new ImageView(getApplicationContext());
+                settings.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_baseline_settings_24));
+                settings.setColorFilter(preferences.getInt("wakeColor", Color.WHITE));
+                Space space = new Space(getApplicationContext());
+                space.setMinimumWidth(50);
                 ImageView close = new ImageView(getApplicationContext());
                 close.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_baseline_close_24));
                 close.setColorFilter(preferences.getInt("wakeColor", Color.WHITE));
+                settings.setScaleX(1.25f);
+                settings.setScaleY(1.25f);
+                close.setScaleX(1.5f);
+                close.setScaleY(1.5f);
                 WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                        100,
-                        100,
+                        350,
+                        150,
                         LAYOUT_TYPE,
                         WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                         PixelFormat.TRANSLUCENT
                 );
-                params.gravity = Gravity.CENTER;
-                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+                params.gravity=Gravity.CENTER;
+                params.x=params.width/4;
+                params.y=params.height/4;
+                closeLayout.addView(settings);
+                closeLayout.addView(space);
+                closeLayout.addView(close);
                 wakeView.setOnTouchListener((v, event) -> {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         wakeView.animate().scaleX(2f);
                         wakeView.animate().scaleY(2f);
-                        windowManager.addView(close, params);
+                        try {
+                            windowManager.addView(closeLayout, params);
+                        }catch (Exception e){}
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
                         wakeView.animate().scaleX(1f);
                         wakeView.animate().scaleY(1f);
-                        windowManager.removeView(close);
+                        windowManager.removeView(closeLayout);
                         int a = (int) (event.getRawX() - displayMetrics.widthPixels / 2);
-                        a = a > 0 ? a : -a;
-                        int b = (int) (event.getRawY() - 100 - displayMetrics.heightPixels / 2);
+                        int b = (int) (event.getRawY() - statusBarHeight - displayMetrics.heightPixels / 2);
                         b = b > 0 ? b : -b;
-                        if (a < 100 && b < 100) {
+                        if ( b < 75)
+                        if (0 < a && a <= 150) {
                             stopForeground(true);
                             stopSelf();
                             return true;
+                        }else if(0 > a && a >= -150){
+                            floatWindowLayoutParam.x = preferences.getInt("wakeX", 50);
+                            floatWindowLayoutParam.y = preferences.getInt("wakeY", 50);
+                            windowManager.updateViewLayout(wakeView, floatWindowLayoutParam);
+                            startActivity(new Intent(getApplicationContext(),WakeActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                         }
                         preferences.edit().putInt("wakeX", floatWindowLayoutParam.x).putInt("wakeY", floatWindowLayoutParam.y).apply();
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                         floatWindowLayoutParam.x = (int) event.getRawX() - 75;
-                        floatWindowLayoutParam.y = (int) event.getRawY() - 175;
+                        floatWindowLayoutParam.y = (int) event.getRawY() - 75 - statusBarHeight;
                         windowManager.updateViewLayout(wakeView, floatWindowLayoutParam);
 
                     }
@@ -200,8 +223,8 @@ public class WakeFloatingService extends Service {
                 }
             }, 0, 60000);
         }
-        if (preferences.getBoolean("sleepDetect", false)) {
-            Intent sleepIntent = new Intent(getApplicationContext(), SleepReciever.class);
+        if (preferences.getBoolean("sleepDetect", false)||preferences.getBoolean("sleepMedia",false)) {
+            Intent sleepIntent = new Intent(getApplicationContext(), SleepReceiver.class);
             pendingIntent = PendingIntent.getBroadcast(this, 0, sleepIntent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_MUTABLE);
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
                 return;
@@ -213,7 +236,6 @@ public class WakeFloatingService extends Service {
             });
 
         }
-
         floatWindowLayoutParam.gravity = Gravity.TOP|Gravity.START;
         windowManager.addView(wakeView,floatWindowLayoutParam);
         wakeView.requestFocus();
@@ -249,6 +271,9 @@ public class WakeFloatingService extends Service {
         try {
             windowManager.removeView(wakeView);
         }catch (Exception ignored){}
+        try {
+            windowManager.removeView(mCardView);
+        }catch (Exception e){}
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             WakeTileService.requestListeningState(getApplicationContext(),new ComponentName(getApplicationContext(),WakeTileService.class));
             WakeTileService.disableTile();
@@ -270,28 +295,35 @@ public class WakeFloatingService extends Service {
     @SuppressLint("ClickableViewAccessibility")
     public static void sleepKill(){
         Timer timer = new Timer();
+        DisplayMetrics displayMetrics = service.getResources().getDisplayMetrics();
+        int orientation = service.getResources().getConfiguration().orientation;
+        int size = orientation==Configuration.ORIENTATION_PORTRAIT?displayMetrics.widthPixels:displayMetrics.heightPixels;
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                480,
-                480,
+                (int) (size*0.75),
+                (int) (size*0.60),
                 LAYOUT_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT
         );
         params.gravity = Gravity.CENTER;
-        CardView mCardView = new CardView(service);
-        CardView cardView = new CardView(service);
-        mCardView.setPadding(15,15,15,15);
-        cardView.setCardBackgroundColor(preferences.getInt("wakeColor",Color.WHITE));
+        mCardView = new CardView(service);
+        mCardView.setBackgroundResource(R.drawable.cardviewborder);
         TextView textView = new TextView(service);
         Typeface typeface = ResourcesCompat.getFont(service.getApplicationContext(), R.font.font);
         textView.setGravity(Gravity.CENTER);
-        textView.setText("Screenery has detected you sleeping and will disable itself in 2 minutes.\nClick on this window to prevent it.");
+        String text = "Screenery has detected you sleeping.\n";
+        text = preferences.getBoolean("sleepDetect", false)?text+"Screen wake ":text;
+        text = preferences.getBoolean("sleepDetect", false)&&preferences.getBoolean("sleepMedia", false)?
+                text+"and ":text;
+        text = preferences.getBoolean("sleepMedia", false)?text+"Device media ":text;
+        text=text+"will be disabled within 2 minutes.\nClick here to cancel.";
+        textView.setText(text);
         textView.setTypeface(typeface);
         textView.setTextColor(preferences.getInt("wakeColor",Color.WHITE));
-        mCardView.setCardBackgroundColor(Color.BLACK);
+        mCardView.setCardBackgroundColor(preferences.getInt("wakeColor",Color.WHITE));
         mCardView.setRadius(100);
-        cardView.addView(textView);
-        mCardView.addView(cardView);
+        mCardView.addView(textView);
+        mCardView.setPadding(size/10,size/10,size/10,size/10);
         mCardView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -303,8 +335,13 @@ public class WakeFloatingService extends Service {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                windowManager.removeView(mCardView);
-                killSelf();
+                if(preferences.getBoolean("sleepMedia", false)){
+                    windowManager.removeView(mCardView);
+                    ((AudioManager)service.getSystemService(Context.AUDIO_SERVICE)).requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+                }
+                if(preferences.getBoolean("sleepDetect", false)){
+                    killSelf();
+                }
             }
         },120000);
         windowManager.addView(mCardView,params);

@@ -17,7 +17,7 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.Screenery">
         <receiver
-            android:name=".SleepReciever"
+            android:name=".SleepReceiver"
             android:enabled="true"
             android:exported="true"/>
 

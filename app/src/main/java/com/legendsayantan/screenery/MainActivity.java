@@ -67,8 +67,7 @@ public class MainActivity extends AppCompatActivity {
                 runCloseAnimation(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        startActivity(new Intent(getApplicationContext(),WakeActivity.class)
-                                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                        startActivity(new Intent(getApplicationContext(),WakeActivity.class));
                     }
                 });
             }else{
@@ -88,13 +87,9 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+        actionRunnable = () -> {};
         if(getIntent().getIntExtra("action",-1)==0){
-            actionRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    cWake.callOnClick();
-                }
-            };
+            actionRunnable = () -> cWake.callOnClick();
         }
     }
     @Override

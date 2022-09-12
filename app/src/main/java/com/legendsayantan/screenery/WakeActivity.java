@@ -26,6 +26,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -41,7 +42,7 @@ import java.util.ArrayList;
  */
 
 public class WakeActivity extends AppCompatActivity {
-    CheckBox checkBox;
+    CheckBox checkBox,checkBox2;
     MaterialButton timerBtn,colorBtn;
     int ANIMATION_DURATION = 250;
     ArrayList<RadioButton> radioButtons = new ArrayList<>();
@@ -65,6 +66,7 @@ public class WakeActivity extends AppCompatActivity {
         radioButtons.add(findViewById(R.id.radioButton11));
         radioButtons.add(findViewById(R.id.radioButton21));
         checkBox = findViewById(R.id.checkBox);
+        checkBox2 = findViewById(R.id.checkBox2);
         timerBtn = findViewById(R.id.button2);
         colorBtn = findViewById(R.id.button21);
         checkBox.setChecked(sharedPreferences.getBoolean("sleepDetect",false));
@@ -72,6 +74,9 @@ public class WakeActivity extends AppCompatActivity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED){
                     editor.putBoolean("sleepDetect", isChecked).apply();
+                    if(hCard.getStrokeWidth()!=0)
+                    if(isChecked)new CustomSnackbar(hCard,"Toggle Screen Wake to apply changes.",WakeActivity.this,0);
+
                 }
                 else {
                     buttonView.setChecked(false);
@@ -84,17 +89,45 @@ public class WakeActivity extends AppCompatActivity {
                     });
                 }
             }else{
-                requestPermissions(new String[]{"com.google.android.gms.permission.ACTIVITY_RECOGNITION"},230);
+                new CustomSnackbar(buttonView, "Sleep detection is supported on Android 10 and later versions.", WakeActivity.this, 0);
+                buttonView.setChecked(false);
+            }
+        });
+        checkBox2.setChecked(sharedPreferences.getBoolean("sleepMedia",false));
+        checkBox2.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED){
+                    editor.putBoolean("sleepMedia", isChecked).apply();
+                    if(hCard.getStrokeWidth()!=0)
+                        if(isChecked)new CustomSnackbar(hCard,"Toggle Screen Wake to apply changes.",WakeActivity.this,0);
+                }
+                else {
+                    buttonView.setChecked(false);
+                    new CustomSnackbar(buttonView, "Grant activity recognition for sleep detection.", WakeActivity.this, 0);
+                    runCloseAnimation(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 230);
+                        }
+                    });
+                }
+            }else{
                 new CustomSnackbar(buttonView, "Sleep detection is supported on Android 10 and later versions.", WakeActivity.this, 0);
                 buttonView.setChecked(false);
             }
         });
         RadioGroup r1=findViewById(R.id.wakeSettings);
         r1.check(r1.getChildAt(sharedPreferences.getInt("wakeSettings",0)).getId());
-        r1.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeSettings",r1.indexOfChild(findViewById(checkedId))).apply());
+        r1.setOnCheckedChangeListener((group, checkedId) -> {
+            editor.putInt("wakeSettings",r1.indexOfChild(findViewById(checkedId))).apply();
+            if(hCard.getStrokeWidth()!=0)new CustomSnackbar(hCard,"Toggle Screen Wake to apply changes.",WakeActivity.this,0);
+        });
         RadioGroup r2=findViewById(R.id.wakeOverlay);
         r2.check(r2.getChildAt(sharedPreferences.getInt("wakeOverlay",1)).getId());
-        r2.setOnCheckedChangeListener((group, checkedId) -> editor.putInt("wakeOverlay",r2.indexOfChild(findViewById(checkedId))).apply());
+        r2.setOnCheckedChangeListener((group, checkedId) -> {
+            editor.putInt("wakeOverlay",r2.indexOfChild(findViewById(checkedId))).apply();
+            if(hCard.getStrokeWidth()!=0)new CustomSnackbar(hCard,"Toggle Screen Wake to apply changes.",WakeActivity.this,0);
+        });
         timerBtn.setText(sharedPreferences.getInt("wakeTime",90)/60+"h "+sharedPreferences.getInt("wakeTime",90)%60+"min");
         timerBtn.setOnClickListener(v -> {
             TimePickerDialog timePickerDialog = new TimePickerDialog(this,
@@ -104,6 +137,7 @@ public class WakeActivity extends AppCompatActivity {
                         }
                         editor.putInt("wakeTime",(hourOfDay*60+minute)).apply();
                         timerBtn.setText(hourOfDay+"h "+minute+"min");
+                        if(hCard.getStrokeWidth()!=0)new CustomSnackbar(hCard,"Toggle Screen Wake to apply changes.",WakeActivity.this,0);
                     },
                     sharedPreferences.getInt("wakeTime",90)/60,
                     sharedPreferences.getInt("wakeTime",90)%60,
@@ -113,30 +147,39 @@ public class WakeActivity extends AppCompatActivity {
         if(sharedPreferences.getInt("wakeColor", -1)==-1)
             editor.putInt("wakeColor",ColourTheme.getAccentColor()).apply();
         colorBtn.setOnClickListener(v -> {
-            int[] color = new int[1];
-            color[0] = sharedPreferences.getInt("wakeColor",ColourTheme.getAccentColor());
-            ColorPicker colorPicker = new ColorPicker(getApplicationContext());
-            CardView cardView = new CardView(getApplicationContext());
-            cardView.setRadius(100);
-            cardView.setBackgroundColor(getColor(R.color.zero));
-            LinearLayout linearLayout = new LinearLayout(getApplicationContext());
-            linearLayout.setGravity(Gravity.CENTER);
-            linearLayout.setBackgroundColor(ColourTheme.getSecondaryAccentColor());
-            colorPicker.setColor(color[0]);
-            colorPicker.setOldCenterColor(color[0]);
-            linearLayout.addView(colorPicker);
-            colorPicker.setOnColorSelectedListener(color1 -> color[0] = color1);
-            cardView.addView(linearLayout);
-            Dialog dialog = new Dialog(WakeActivity.this);
-            dialog.addContentView(cardView,
-                    new ViewGroup.LayoutParams(
-                            (int) (getResources().getDisplayMetrics().widthPixels*0.5),
-                            (int) (getResources().getDisplayMetrics().widthPixels*0.5)
-                    ));
-            dialog.show();
-            dialog.setOnDismissListener(dialog1 -> {
-                editor.putInt("wakeColor",color[0]).apply();
-                colorBtn.setStrokeColor(ColorStateList.valueOf(color[0]));
+            runCloseAnimation(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    int[] color = new int[1];
+                    color[0] = sharedPreferences.getInt("wakeColor",ColourTheme.getAccentColor());
+                    ColorPicker colorPicker = new ColorPicker(getApplicationContext());
+                    CardView cardView = new CardView(getApplicationContext());
+                    cardView.setRadius(100);
+                    cardView.setCardBackgroundColor(ColourTheme.getSecondaryAccentColor());
+                    cardView.setBackgroundResource(R.drawable.cardviewborder);
+                    LinearLayout linearLayout = new LinearLayout(getApplicationContext());
+                    linearLayout.setGravity(Gravity.CENTER);
+                    linearLayout.setBackgroundColor(ColourTheme.getSecondaryAccentColor());
+                    colorPicker.setColor(color[0]);
+                    colorPicker.setOldCenterColor(color[0]);
+                    linearLayout.addView(colorPicker);
+                    colorPicker.setOnColorSelectedListener(color1 -> color[0] = color1);
+                    cardView.addView(linearLayout);
+                    Dialog dialog = new Dialog(WakeActivity.this);
+                    dialog.addContentView(cardView,
+                            new ViewGroup.LayoutParams(
+                                    (int) (getResources().getDisplayMetrics().widthPixels*0.5),
+                                    (int) (getResources().getDisplayMetrics().widthPixels*0.5)
+                            ));
+                    dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+                    dialog.show();
+                    dialog.setOnDismissListener(dialog1 -> {
+                        editor.putInt("wakeColor",color[0]).apply();
+                        colorBtn.setStrokeColor(ColorStateList.valueOf(color[0]));
+                        if(hCard.getStrokeWidth()!=0)new CustomSnackbar(hCard,"Toggle Screen Wake to apply changes.",WakeActivity.this,0);
+                        runOpenAnimation(null);
+                    });
+                }
             });
         });
     }
@@ -167,13 +210,11 @@ public class WakeActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(ANIMATION_IN_PROGRESS)return;
-        if(hCard.getStrokeWidth()!=0){
-            new CustomSnackbar(hCard,"Toggle Screen Wake to apply changes.",WakeActivity.this,ANIMATION_DURATION* 2L);
-        }
         runCloseAnimation(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 startActivity(new Intent(getApplicationContext(),MainActivity.class)
+                        .putExtra("action",-1)
                         .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 finish();
             }
@@ -228,6 +269,8 @@ public class WakeActivity extends AppCompatActivity {
         }
         checkBox.setTextColor(accent);
         checkBox.setButtonTintList(stateList);
+        checkBox2.setTextColor(accent);
+        checkBox2.setButtonTintList(stateList);
         timerBtn.setBackgroundTintList(stateList);
         timerBtn.setTextColor(accent2);
         colorBtn.setBackgroundTintList(stateList);
