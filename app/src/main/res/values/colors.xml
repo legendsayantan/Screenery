@@ -8,4 +8,6 @@
     <color name="softwhite">#DCDCDC</color>
     <color name="neublue">#1EA6F4</color>
     <color name="neublue2">#177BB5</color>
+    <color name="ic_launcher_background">#2E3133</color>
+    <color name="ic_launcher_foreground">#C1E8FF</color>
 </resources>
