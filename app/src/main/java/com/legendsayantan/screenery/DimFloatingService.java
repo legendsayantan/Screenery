@@ -121,10 +121,10 @@ public class DimFloatingService extends Service {
                 CardView cardView = new CardView(getApplicationContext());
                 cardView.setRadius(50);
                 cardView.setKeepScreenOn(true);
-                cardView.setCardBackgroundColor(getColor(R.color.ic_launcher_background));
+                cardView.setCardBackgroundColor(preferences.getInt("bgColor",Color.TRANSPARENT));
                 ImageView imageView2 = new ImageView(getApplicationContext());
                 imageView2.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_outline_mode_night_24));
-                imageView2.setColorFilter(preferences.getInt("dimColor", Color.BLACK));
+                imageView2.setColorFilter(preferences.getInt("dimColor", preferences.getInt("acntColor",Color.TRANSPARENT)));
                 imageView2.setKeepScreenOn(true);
                 imageView2.setScaleX(0.75f);
                 imageView2.setScaleY(0.75f);

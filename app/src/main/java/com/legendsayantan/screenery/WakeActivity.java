@@ -256,6 +256,7 @@ public class WakeActivity extends AppCompatActivity {
         ColourTheme.initTextView(findViewById(R.id.header));
         ColourTheme.initText(findViewById(R.id.textView2));
         ColourTheme.initText(findViewById(R.id.textView21));
+        ColourTheme.initText(findViewById(R.id.textView));
 
         int accent = ColourTheme.getAccentColor();
         int accent2 = ColourTheme.getSecondaryAccentColor();

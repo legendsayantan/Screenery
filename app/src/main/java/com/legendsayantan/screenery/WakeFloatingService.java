@@ -119,10 +119,10 @@ public class WakeFloatingService extends Service {
                 CardView cardView = new CardView(getApplicationContext());
                 cardView.setRadius(50);
                 cardView.setKeepScreenOn(true);
-                cardView.setCardBackgroundColor(getColor(R.color.ic_launcher_background));
+                cardView.setCardBackgroundColor(preferences.getInt("bgColor",Color.TRANSPARENT));
                 ImageView imageView2 = new ImageView(getApplicationContext());
                 imageView2.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_outline_wb_sunny_24));
-                imageView2.setColorFilter(preferences.getInt("wakeColor", Color.BLACK));
+                imageView2.setColorFilter(preferences.getInt("wakeColor", preferences.getInt("acntColor",Color.TRANSPARENT)));
                 imageView2.setKeepScreenOn(true);
                 imageView2.setScaleX(0.75f);
                 imageView2.setScaleY(0.75f);

@@ -15,6 +15,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.view.View;
@@ -266,6 +267,9 @@ public class MainActivity extends AppCompatActivity {
         ColourTheme.initText(findViewById(R.id.dialog_btn));
         CustomSnackbar.setAccentColor(ColourTheme.getAccentColor());
         CustomSnackbar.setBgColor(ColourTheme.getSecondaryAccentColor());
+
+        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("acntColor",ColourTheme.getAccentColor()).apply();
+        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("bgColor",ColourTheme.getSecondaryAccentColor()).apply();
     }
 
     public void getOverlayPerm() {
