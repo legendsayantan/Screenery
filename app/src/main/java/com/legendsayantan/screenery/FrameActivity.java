@@ -1,12 +1,10 @@
 package com.legendsayantan.screenery;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
 import androidx.cardview.widget.CardView;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.ComponentName;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.os.Build;
@@ -18,14 +16,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.google.android.material.card.MaterialCardView;
-import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
-import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
 
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,7 +29,7 @@ public class FrameActivity extends AppCompatActivity {
     private static boolean ANIMATION_IN_PROGRESS = false;
     private SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
-    MaterialCardView hCard,fps60,fps90,fps120;
+    MaterialCardView hCard, btn1, btn2, btn3;
     TextView defRate;
     EditText text ;
     Button applyButton;
@@ -47,21 +41,21 @@ public class FrameActivity extends AppCompatActivity {
         sharedPreferences  = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         editor = sharedPreferences.edit();
         hCard = findViewById(R.id.hCard);
-        fps60=findViewById(R.id.fps60);
-        fps90=findViewById(R.id.fps90);
-        fps120=findViewById(R.id.fps120);
+        btn1 =findViewById(R.id.fps60);
+        btn2 =findViewById(R.id.fps90);
+        btn3 =findViewById(R.id.fps120);
         defRate=findViewById(R.id.defRate);
         text = findViewById(R.id.editText);
         applyButton = findViewById(R.id.button);
         if(sharedPreferences.getInt("frame",-1)==-1)editor.putInt("frame", (int) Float.parseFloat(screenFrame())).apply();
         defRate.setText(sharedPreferences.getInt("frame",60)==0?"MAX":sharedPreferences.getInt("frame",60)+" ");
-        fps60.setOnClickListener(v -> {
+        btn1.setOnClickListener(v -> {
             setFrameRate(60);
         });
-        fps90.setOnClickListener(v -> {
+        btn2.setOnClickListener(v -> {
             setFrameRate(90);
         });
-        fps120.setOnClickListener(v -> {
+        btn3.setOnClickListener(v -> {
             setFrameRate(0);
         });
     }
@@ -114,9 +108,9 @@ public class FrameActivity extends AppCompatActivity {
         findViewById(R.id.card2).setBackgroundColor(accent2);
         findViewById(R.id.cardControl1).setBackgroundColor(median);
         findViewById(R.id.cardControl2).setBackgroundColor(median);
-        ColourTheme.initCard(fps60);
-        ColourTheme.initCard(fps90);
-        ColourTheme.initCard(fps120);
+        ColourTheme.initCard(btn1);
+        ColourTheme.initCard(btn2);
+        ColourTheme.initCard(btn3);
         ColourTheme.initText(defRate);
         ColourTheme.initText(findViewById(R.id.text1));
         ColourTheme.initText(findViewById(R.id.text2));

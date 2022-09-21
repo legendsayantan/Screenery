@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "117673523153",
+    "project_id": "legendscreenery",
+    "storage_bucket": "legendscreenery.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:117673523153:android:f0373ce2f1adb0746652f0",
+        "android_client_info": {
+          "package_name": "com.legendsayantan.screenery"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "117673523153-se0c3l41fmos9sffglbknncf0rl5l69f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMARYQSWAci4IewTdnhOnF_v2jlmx8eI8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "117673523153-se0c3l41fmos9sffglbknncf0rl5l69f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -243,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         ColourTheme.initCardToggle(frame, () -> {
+
             new CustomSnackbar(frame,"Empty space for future features",MainActivity.this,0);
             frame.setStrokeWidth(0);
         });
