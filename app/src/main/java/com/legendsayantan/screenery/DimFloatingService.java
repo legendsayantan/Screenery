@@ -160,6 +160,9 @@ public class DimFloatingService extends Service {
                 closeLayout.addView(space);
                 closeLayout.addView(close);
                 dimView.setOnTouchListener((v, event) -> {
+                    int orientation = service.getResources().getConfiguration().orientation;
+                    float x = event.getRawX()-(orientation==Configuration.ORIENTATION_PORTRAIT?0:statusBarHeight);
+                    float y = event.getRawY()-(orientation==Configuration.ORIENTATION_PORTRAIT?statusBarHeight:0);
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         dimView.animate().scaleX(2f);
                         dimView.animate().scaleY(2f);
@@ -170,8 +173,8 @@ public class DimFloatingService extends Service {
                         dimView.animate().scaleX(1f);
                         dimView.animate().scaleY(1f);
                         windowManager.removeView(closeLayout);
-                        int a = (int) (event.getRawX() - displayMetrics.widthPixels / 2);
-                        int b = (int) (event.getRawY() - statusBarHeight - displayMetrics.heightPixels / 2);
+                        int a = (int) (x - displayMetrics.widthPixels / 2);
+                        int b = (int) (y - displayMetrics.heightPixels / 2);
                         b = b > 0 ? b : -b;
                         if ( b < 75)
                         if (0 < a && a <= 150) {
@@ -186,8 +189,8 @@ public class DimFloatingService extends Service {
                         }
                         preferences.edit().putInt("dimX", floatWindowLayoutParam.x).putInt("dimY", floatWindowLayoutParam.y).apply();
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                        floatWindowLayoutParam.x = (int) event.getRawX() - 75;
-                        floatWindowLayoutParam.y = (int) event.getRawY() - 75 - statusBarHeight;
+                        floatWindowLayoutParam.x = (int) x - 75;
+                        floatWindowLayoutParam.y = (int) y - 75;
                         windowManager.updateViewLayout(dimView, floatWindowLayoutParam);
 
                     }

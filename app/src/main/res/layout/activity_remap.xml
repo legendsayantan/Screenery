@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/back"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RemapActivity">
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/hCard"
+                android:layout_width="match_parent"
+                android:layout_height="75dp"
+                android:layout_marginHorizontal="75dp"
+                android:layout_marginTop="50dp"
+                app:cardCornerRadius="40dp">
+
+                <TextView
+                    android:id="@+id/header"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Remap Button"
+                    android:textSize="20dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:orientation="horizontal">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="25dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:scaleX="1."
+                    app:cardCornerRadius="0dp"
+                    app:contentPadding="25dp">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/text1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="Button"
+                            android:textSize="18dp" />
+
+
+                        <RadioGroup
+                            android:id="@+id/groupButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <RadioButton
+                                android:id="@+id/vol_both"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Both" />
+
+                            <RadioButton
+                                android:id="@+id/vol_up"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Volume Up" />
+
+                            <RadioButton
+                                android:id="@+id/vol_down"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Volume Down" />
+
+                        </RadioGroup>
+
+
+                    </LinearLayout>
+
+
+                </androidx.cardview.widget.CardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardTrigger"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="25dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:scaleX="1"
+                    app:cardCornerRadius="0dp"
+                    app:contentPadding="25dp">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/text2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="Trigger"
+                            android:textSize="18dp" />
+
+
+                        <RadioGroup
+                            android:id="@+id/groupTrigger"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <RadioButton
+                                android:id="@+id/click"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Single Click" />
+
+                            <RadioButton
+                                android:id="@+id/hold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Click and Hold" />
+                        </RadioGroup>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:layout_marginHorizontal="25dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginBottom="-50dp"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="50dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:paddingBottom="50dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/text3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="15dp"
+                            android:gravity="center"
+                            android:text="Action"
+                            android:textSize="18dp" />
+
+                        <RadioGroup
+                            android:id="@+id/groupAction"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+
+                            <RadioButton
+                                android:id="@+id/radioButton6"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Silent" />
+
+                            <RadioButton
+                                android:id="@+id/radioButton7"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Vibrate" />
+
+                            <RadioButton
+                                android:id="@+id/radioButton4"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="min Brightness" />
+
+                            <RadioButton
+                                android:id="@+id/radioButton5"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="max Brightness" />
+
+                            <RadioButton
+                                android:id="@+id/radioButton8"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Start Screen Wake" />
+
+                            <RadioButton
+                                android:id="@+id/radioButton9"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Start Screen Dim" />
+
+                            <RadioButton
+                                android:id="@+id/radioButton10"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Launch App" />
+
+                            <RadioButton
+                                android:id="@+id/radioButton12"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Call Number" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </ScrollView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:visibility="gone"
+        android:id="@+id/dialog"
+        app:cardCornerRadius="25dp"
+        android:layout_width="300dp"
+        android:layout_height="250dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textViewDialog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:gravity="center"
+                android:text="Screenery"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/dialogtext"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="25dp"
+                android:gravity="center"
+                android:text="placeholder text"
+                app:layout_constraintBottom_toTopOf="@+id/dialog_btn"
+                app:layout_constraintTop_toBottomOf="@+id/textViewDialog"
+                tools:layout_editor_absoluteX="25dp" />
+
+            <TextView
+                android:id="@+id/dialog_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Continue"
+                android:layout_marginBottom="20dp"
+                android:textSize="20sp"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

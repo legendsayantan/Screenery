@@ -23,7 +23,6 @@ import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -158,6 +157,9 @@ public class WakeFloatingService extends Service {
                 closeLayout.addView(space);
                 closeLayout.addView(close);
                 wakeView.setOnTouchListener((v, event) -> {
+                    int orientation = service.getResources().getConfiguration().orientation;
+                    float x = event.getRawX()-(orientation==Configuration.ORIENTATION_PORTRAIT?0:statusBarHeight);
+                    float y = event.getRawY()-(orientation==Configuration.ORIENTATION_PORTRAIT?statusBarHeight:0);
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         wakeView.animate().scaleX(2f);
                         wakeView.animate().scaleY(2f);
@@ -168,8 +170,8 @@ public class WakeFloatingService extends Service {
                         wakeView.animate().scaleX(1f);
                         wakeView.animate().scaleY(1f);
                         windowManager.removeView(closeLayout);
-                        int a = (int) (event.getRawX() - displayMetrics.widthPixels / 2);
-                        int b = (int) (event.getRawY() - statusBarHeight - displayMetrics.heightPixels / 2);
+                        int a = (int) (x - displayMetrics.widthPixels / 2);
+                        int b = (int) (y - displayMetrics.heightPixels / 2);
                         b = b > 0 ? b : -b;
                         if ( b < 75)
                         if (0 < a && a <= 150) {
@@ -184,8 +186,8 @@ public class WakeFloatingService extends Service {
                         }
                         preferences.edit().putInt("wakeX", floatWindowLayoutParam.x).putInt("wakeY", floatWindowLayoutParam.y).apply();
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                        floatWindowLayoutParam.x = (int) event.getRawX() - 75;
-                        floatWindowLayoutParam.y = (int) event.getRawY() - 75 - statusBarHeight;
+                        floatWindowLayoutParam.x = (int) x - 75;
+                        floatWindowLayoutParam.y = (int) y - 75;
                         windowManager.updateViewLayout(wakeView, floatWindowLayoutParam);
 
                     }
@@ -221,6 +223,7 @@ public class WakeFloatingService extends Service {
                             WakeTileService.requestListeningState(getApplicationContext(), new ComponentName(getApplicationContext(), WakeTileService.class));
                             WakeTileService.qsTile.setSubtitle(remainTime / 60 + "h " + remainTime % 60 + "min");
                             WakeTileService.qsTile.updateTile();
+                            wakeView.setKeepScreenOn(true);
                         }catch (Exception ignored){};
                     }
                 }

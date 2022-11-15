@@ -34,22 +34,27 @@ public class ColourTheme {
     private static int vibrantColor;
     private static boolean nightUi;
     private static Activity activity;
+    private static Drawable fallBack;
 
     public static void init(Activity activity) {
         System.out.println("preparing theme");
         Drawable drawable1 = null;
         ColourTheme.activity = activity;
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) { return; }
-        WallpaperManager wallpaperManager = WallpaperManager.getInstance(activity);
-        drawable1 = wallpaperManager.peekDrawable();
-        if (drawable1 == null) {
-            System.out.println("Null returned at peekDrawable");
-            drawable1 = wallpaperManager.getDrawable();
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            WallpaperManager wallpaperManager = WallpaperManager.getInstance(activity);
+            drawable1 = wallpaperManager.peekDrawable();
+            if (drawable1 == null) {
+                System.out.println("Null returned at peekDrawable");
+                drawable1 = wallpaperManager.getDrawable();
+            }
+        }else{
+            drawable1 = fallBack;
         }
+
         if(ColourTheme.drawable==drawable1)return;
         drawable = drawable1;
         Bitmap iconBitmap = ((BitmapDrawable) drawable).getBitmap();
-        Palette iconPalette = Palette.from(iconBitmap).maximumColorCount(16).generate();
+        Palette iconPalette = Palette.from(iconBitmap).maximumColorCount(12).generate();
         lightColor = iconPalette.getLightVibrantColor(
                 ColorUtils.blendARGB(
                         iconPalette.getDominantColor(iconPalette.getVibrantColor(0x000000)),
@@ -180,5 +185,8 @@ public class ColourTheme {
     private static float getDistance(int color1, int color2) {
         float avgHue = (getHue(color1) + getHue(color2))/2;
         return Math.abs(getHue(color1) - avgHue);
+    }
+    public static void setFallBackDrawable(Drawable drawable){
+        fallBack = drawable;
     }
 }
