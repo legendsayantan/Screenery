@@ -31,6 +31,8 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import com.elconfidencial.bubbleshowcase.BubbleShowCaseBuilder;
+import com.elconfidencial.bubbleshowcase.BubbleShowCaseSequence;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.larswerkman.holocolorpicker.ColorPicker;
@@ -200,6 +202,7 @@ public class WakeActivity extends AppCompatActivity {
                             new ComponentName(getApplicationContext(),WakeTileService.class));
                     try {
                         wakeCardToggle(WakeTileService.qsTile.getState());
+                        initShowCase();
                     }catch (NullPointerException ignored){}
                 }
             }
@@ -329,5 +332,14 @@ public class WakeActivity extends AppCompatActivity {
             context.startForegroundService(new Intent(context, WakeFloatingService.class));
         else
             context.startService(new Intent(context,WakeFloatingService.class));
+    }
+    public void initShowCase(){
+        new BubbleShowCaseBuilder(this)
+                .title("You can toggle screen wake from this button too.")
+                .backgroundColor(ColourTheme.getSecondaryAccentColor())
+                .textColor(ColourTheme.getAccentColor())
+                .targetView(findViewById(R.id.hCard))
+                .showOnce("hCard")
+                .show();
     }
 }

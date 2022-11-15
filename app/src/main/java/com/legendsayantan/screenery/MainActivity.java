@@ -21,6 +21,7 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.service.quicksettings.Tile;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -77,11 +78,6 @@ public class MainActivity extends AppCompatActivity {
         pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         cWake.setOnClickListener(v -> {
             if(ANIMATION_IN_PROGRESS)return;
-            if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED
-            && sharedPreferences.getBoolean("storageAsk",true)) {
-                askForStorage();
-                return;
-            }
             if(checkOverlay()){
                 runCloseAnimation(new AnimatorListenerAdapter() {
                     @Override
@@ -108,11 +104,6 @@ public class MainActivity extends AppCompatActivity {
         });
         cDim.setOnClickListener(v -> {
             if(ANIMATION_IN_PROGRESS)return;
-            if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED
-                    && sharedPreferences.getBoolean("storageAsk",true)) {
-                askForStorage();
-                return;
-            }
             if(checkOverlay()){
                 runCloseAnimation(new AnimatorListenerAdapter() {
                     @Override
@@ -140,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             hideBottomBar(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    new CustomSnackbar(frame,"Suggest for new features on github.",MainActivity.this,0,new Snackbar.Callback(){
+                    new CustomSnackbar(frame,"Suggest new features on github.",MainActivity.this,0,new Snackbar.Callback(){
                         @Override
                         public void onDismissed(Snackbar transientBottomBar, int event) {
                             runOnUiThread(() -> showBottomBar(null));
@@ -398,13 +389,13 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onAnimationEnd(Animator animation) {
                                 showBottomBar(listener);
+                                ANIMATION_IN_PROGRESS = false;
                             }
                         });
                     }
                 });
             }
         });
-        ANIMATION_IN_PROGRESS = false;
     }
     protected void runCloseAnimation(AnimatorListenerAdapter adapter){
         ANIMATION_IN_PROGRESS = true;
@@ -422,13 +413,13 @@ public class MainActivity extends AppCompatActivity {
                             public void onAnimationEnd(Animator animation) {
                                 wake.animate().translationX(-400).setDuration(ANIMATION_DURATION);
                                 cWake.animate().translationX(width-150).setDuration(ANIMATION_DURATION).setListener(adapter);
+                                ANIMATION_IN_PROGRESS = false;
                             }
                         });
                     }
                 });
             }
         });
-        ANIMATION_IN_PROGRESS = false;
     }
     protected void showDialog(String message,View.OnClickListener onContinueClick, View.OnClickListener onCancelClick){
         ANIMATION_IN_PROGRESS = true;
@@ -607,6 +598,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     public void initShowCase(){
+
         BubbleShowCaseSequence sequence = new BubbleShowCaseSequence()
                 .addShowCase(new BubbleShowCaseBuilder(this)
                         .title("This button starts screen wake.")
@@ -635,5 +627,6 @@ public class MainActivity extends AppCompatActivity {
                 .targetView(theme)
                 .showOnce("theme"));
         sequence.show();
+
     }
 }
