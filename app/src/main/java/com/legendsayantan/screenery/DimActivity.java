@@ -44,7 +44,7 @@ import java.util.TimerTask;
 
 public class DimActivity extends AppCompatActivity {
     MaterialButton colorBtn;
-    int ANIMATION_DURATION = 250;
+    int ANIMATION_DURATION = 200;
     private boolean ANIMATION_IN_PROGRESS = false;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;

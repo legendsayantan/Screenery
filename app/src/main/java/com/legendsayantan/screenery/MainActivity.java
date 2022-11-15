@@ -14,7 +14,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,12 +25,13 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.ShareActionProvider;
 import android.widget.TextView;
 
+import com.elconfidencial.bubbleshowcase.BubbleShowCase;
+import com.elconfidencial.bubbleshowcase.BubbleShowCaseBuilder;
+import com.elconfidencial.bubbleshowcase.BubbleShowCaseSequence;
 import com.google.android.material.card.MaterialCardView;
-
-import org.w3c.dom.Text;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     ImageView info,theme,battery;
     TextView bottomText;
     PowerManager pm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,7 +137,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         cFrame.setOnClickListener(v -> {
-            new CustomSnackbar(cFrame,"Suggest for new feature at github.",MainActivity.this,0);
+            hideBottomBar(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    new CustomSnackbar(frame,"Suggest for new features on github.",MainActivity.this,0,new Snackbar.Callback(){
+                        @Override
+                        public void onDismissed(Snackbar transientBottomBar, int event) {
+                            runOnUiThread(() -> showBottomBar(null));
+                            super.onDismissed(transientBottomBar, event);
+                        }
+                    });
+                }
+            });;
         });
         info.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -178,6 +190,10 @@ public class MainActivity extends AppCompatActivity {
         refreshTheme();
         if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
             theme.setVisibility(View.GONE);
+            if(getIntent().getIntExtra("action",-1)!=-1){
+                actionRunnable.run();
+                getIntent().putExtra("action",-1);
+            }else
             runOpenAnimation(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
@@ -193,13 +209,16 @@ public class MainActivity extends AppCompatActivity {
                             dimCardToggle(DimTileService.qsTile.getState());
                         }catch (NullPointerException n){}
                     }
-                    actionRunnable.run();
+                    initShowCase();
                 }
             });
         }else{
             theme.setVisibility(View.VISIBLE);
             if(sharedPreferences.getBoolean("storageAsk",true))askForStorage();
-            else runOpenAnimation(new AnimatorListenerAdapter() {
+            else if(getIntent().getIntExtra("action",-1)!=-1){
+                actionRunnable.run();
+                getIntent().putExtra("action",-1);
+            }else runOpenAnimation(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -214,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                             dimCardToggle(DimTileService.qsTile.getState());
                         }catch (NullPointerException n){}
                     }
-                    actionRunnable.run();
+                    initShowCase();
                 }
             });
         }
@@ -222,8 +241,8 @@ public class MainActivity extends AppCompatActivity {
             battery.setVisibility(View.VISIBLE);
             battery.setOnClickListener(v -> askBatteryOptimisations());
         } else battery.setVisibility(View.GONE);
-        super.onResume();
 
+        super.onResume();
     }
 
     @Override
@@ -278,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
                         WakeFloatingService.killSelf();
                     }catch (Exception ignored){}
                 } else {
-                    startService(new Intent(getApplicationContext(),DimFloatingService.class));
+                    startService(new Intent(getApplicationContext(),WakeFloatingService.class));
                 }
             }
         });
@@ -306,8 +325,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         ColourTheme.initCardToggle(frame, () -> {
-
-            new CustomSnackbar(frame,"Empty space for future updates",MainActivity.this,0);
+            hideBottomBar(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    new CustomSnackbar(frame,"Empty space for future updates",MainActivity.this,0,new Snackbar.Callback(){
+                        @Override
+                        public void onDismissed(Snackbar transientBottomBar, int event) {
+                            runOnUiThread(() -> showBottomBar(null));
+                            super.onDismissed(transientBottomBar, event);
+                        }
+                    });
+                }
+            });
             frame.setStrokeWidth(0);
         });
         ColourTheme.initCard(cWake);
@@ -457,7 +486,12 @@ public class MainActivity extends AppCompatActivity {
                     closeDialog(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation1) {
-                            runOpenAnimation(null);
+                            runOpenAnimation(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    initShowCase();
+                                }
+                            });
                         }
                     });
                 });
@@ -468,7 +502,7 @@ public class MainActivity extends AppCompatActivity {
         runCloseAnimation(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                showDialog("Do you want to let this app run in background?\nIt will improve the reliability of this app.", v -> {
+                showDialog("Do you want to let this app run in background?\nIt might improve reliability of this app.", v -> {
                     if(ANIMATION_IN_PROGRESS)return;
                     closeDialog(new AnimatorListenerAdapter() {
                         @Override
@@ -571,5 +605,35 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+    public void initShowCase(){
+        BubbleShowCaseSequence sequence = new BubbleShowCaseSequence()
+                .addShowCase(new BubbleShowCaseBuilder(this)
+                        .title("This button starts screen wake.")
+                        .backgroundColor(ColourTheme.getSecondaryAccentColor())
+                        .textColor(ColourTheme.getAccentColor())
+                        .targetView(wake)
+                        .showOnce("wake"))
+                .addShowCase(new BubbleShowCaseBuilder(this)
+                        .title("This button dims your screen.")
+                        .backgroundColor(ColourTheme.getSecondaryAccentColor())
+                        .textColor(ColourTheme.getAccentColor())
+                        .targetView(dim)
+                        .showOnce("dim"));
+        if(battery.getVisibility()==View.VISIBLE)sequence.addShowCase(new BubbleShowCaseBuilder(this)
+                        .title("If the app doesn't work reliably, disable battery optimisation here.")
+                        .backgroundColor(ColourTheme.getSecondaryAccentColor())
+                        .textColor(ColourTheme.getAccentColor())
+                        .arrowPosition(BubbleShowCase.ArrowPosition.RIGHT)
+                        .targetView(battery)
+                        .showOnce("battery"));
+        if(theme.getVisibility()==View.VISIBLE)sequence.addShowCase(new BubbleShowCaseBuilder(this)
+                .title("You can switch to wallpaper based theme here.")
+                .backgroundColor(ColourTheme.getSecondaryAccentColor())
+                .textColor(ColourTheme.getAccentColor())
+                .arrowPosition(BubbleShowCase.ArrowPosition.RIGHT)
+                .targetView(theme)
+                .showOnce("theme"));
+        sequence.show();
     }
 }
