@@ -51,7 +51,7 @@ public class CustomSnackbar {
             }
         },dismissDelay);
     }
-    public CustomSnackbar(View v, String message, Context activityContext,long dismissDelay,Runnable onDismiss) {
+    public CustomSnackbar(View v, String message, Context activityContext,long dismissDelay,Snackbar.Callback onDismiss) {
         snackbar = Snackbar.make(v,message,Snackbar.LENGTH_SHORT);
         snackbar.setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE);
         snackbar.getView().setBackgroundColor(Color.TRANSPARENT);
@@ -75,9 +75,9 @@ public class CustomSnackbar {
             @Override
             public void run() {
                 snackbar.dismiss();
-                onDismiss.run();
             }
         },dismissDelay);
+        snackbar.addCallback(onDismiss);
     }
 
     public static void setBgColor(int bgColor) {

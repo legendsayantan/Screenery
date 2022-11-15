@@ -44,7 +44,7 @@ import java.util.ArrayList;
 public class WakeActivity extends AppCompatActivity {
     CheckBox checkBox,checkBox2;
     MaterialButton timerBtn,colorBtn;
-    int ANIMATION_DURATION = 250;
+    int ANIMATION_DURATION = 200;
     ArrayList<RadioButton> radioButtons = new ArrayList<>();
     private boolean ANIMATION_IN_PROGRESS = false;
     SharedPreferences sharedPreferences;
